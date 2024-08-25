@@ -6,7 +6,7 @@ import plotly.express as px
 
 # Load the data
 df = pd.read_csv('top_10000_people_articles.csv')
-print(df.head())
+
 # Convert birth and death years to integers, handling any non-numeric values
 df['birth'] = pd.to_numeric(df['birth'], errors='coerce').fillna(0).astype(int)
 df['death'] = pd.to_numeric(df['death'], errors='coerce').fillna(2023).astype(int)
@@ -41,9 +41,29 @@ app.layout = html.Div([
         marks={str(year): str(year) for year in range(min_year, max_year + 1, 100)},
         step=1
     ),
-    html.Div(id='year-display')
+    html.Div(id='year-display'),
+    # html.A(id='wikipedia-link', children="Click on a dot to open the Wikipedia page", href="", target="_blank", style={"display": "none"})  # Hidden by default
+    html.A(
+        id='wikipedia-link',
+        children="Click on a dot to open the Wikipedia page",
+        href="",
+        target="_blank",
+        style={
+            "display": "none",
+            "color": "#ffffff",  # Link text color
+            "fontSize": "22px",  # Increased font size
+            "fontWeight": "bold",  # Bold text
+            "textDecoration": "none",  # No underline
+            "background": "linear-gradient(45deg, #ff5722, #ff9800)",  # Gradient background
+            "padding": "15px",  # More padding
+            "borderRadius": "10px",  # More rounded corners
+            "border": "2px solid #ff5722",  # Thicker border
+            "marginTop": "15px",  # More margin on top
+            "boxShadow": "0 4px 8px rgba(0,0,0,0.3)",  # Shadow effect
+            "transition": "background 0.3s, transform 0.3s",  # Smooth transition for hover effects
+        }
+    )
 ])
-
 
 # Callback to update the map and year display
 @app.callback(
@@ -68,8 +88,40 @@ def update_map(selected_year):
 
     return fig, f"Selected Year: {selected_year}"
 
+# Callback to handle click events on the map
+# @app.callback(
+#     Output('wikipedia-link', 'href'),
+#     Output('wikipedia-link', 'style'),
+#     [Input('world-map', 'clickData')]
+# )
+
+@app.callback(
+    [Output('wikipedia-link', 'href'),
+     Output('wikipedia-link', 'children'),
+     Output('wikipedia-link', 'style')],
+    [Input('world-map', 'clickData')]
+)
+
+def display_click_data(clickData):
+    if clickData:
+        row_idx = df['article_name'] == clickData['points'][0]['hovertext']
+        wiki_link = df[row_idx]['wikipedia link'].values[0]
+        return wiki_link, clickData['points'][0]['hovertext'], {
+            "display": "block",
+            "color": "#ffffff",
+            "fontSize": "22px",
+            "fontWeight": "bold",
+            "textDecoration": "none",
+            "background": "linear-gradient(45deg, #ff5722, #ff9800)",
+            "padding": "15px",
+            "borderRadius": "10px",
+            "border": "2px solid #ff5722",
+            "marginTop": "15px",
+            "boxShadow": "0 4px 8px rgba(0,0,0,0.3)",
+            "transition": "background 0.3s, transform 0.3s",
+        }  # Show the link
+    return "", "", {"display": "none"}  # Hide the link when no point is clicked
 
 # Run the app
 if __name__ == '__main__':
     app.run_server(debug=True)
-
