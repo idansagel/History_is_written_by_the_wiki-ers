@@ -15,7 +15,7 @@ class FigureGroupFinder:
     
     def load_data(self):
         # Load the CSV file
-        self.data = pd.read_csv('top_10000_people_articles.csv')
+        self.data = pd.read_csv('src/top_10000_people_articles.csv')
         
         # Convert outgoing_link_ids to lists
         self.data['outgoing_link_ids'] = self.data['outgoing_link_ids'].fillna('').apply(lambda x: [int(i) for i in x.split(',') if i])
@@ -29,7 +29,7 @@ class FigureGroupFinder:
                 self.graph.add_edge(row['page_id'], target)
     
     def load_or_calculate_clusters(self, resolution=1, threshold=1e-07, seed=None):
-        cluster_file = 'louvain_clusters.pkl'
+        cluster_file = 'src/louvain_clusters.pkl'
         if os.path.exists(cluster_file):
             with open(cluster_file, 'rb') as f:
                 self.clusters = pickle.load(f)
