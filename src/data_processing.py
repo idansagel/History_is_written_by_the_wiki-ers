@@ -6,7 +6,7 @@ import ast
 
 def load_and_process_data():
     # Load the data
-    df = pd.read_csv('src/top_10000_people_articles.csv')
+    df = pd.read_csv('top_10000_people_articles.csv')
 
     # Filter out rows where birth or death is NaN
     df = df.dropna(subset=['birth'])
