@@ -15,7 +15,7 @@ class FigureGroupFinder:
     
     def load_data(self):
         # Load the CSV file
-        self.data = pd.read_csv('src/top_10000_people_articles.csv')
+        self.data = pd.read_csv('top_10000_people_articles.csv')
         
         # Convert outgoing_link_ids to lists
         self.data['outgoing_link_ids'] = self.data['outgoing_link_ids'].fillna('').apply(lambda x: [int(i) for i in x.split(',') if i])
