@@ -8,3 +8,5 @@ requests==2.31.0
 tqdm==4.66.1
 gunicorn
 dash-tools
+setuptools==75.1.0
+docopt==0.6.2
