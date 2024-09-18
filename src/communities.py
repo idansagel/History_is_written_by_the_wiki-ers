@@ -29,7 +29,7 @@ class FigureGroupFinder:
                 self.graph.add_edge(row['page_id'], target)
     
     def load_or_calculate_clusters(self, resolution=1, threshold=1e-07, seed=None):
-        cluster_file = 'src/louvain_clusters.pkl'
+        cluster_file = 'louvain_clusters.pkl'
         if os.path.exists(cluster_file):
             with open(cluster_file, 'rb') as f:
                 self.clusters = pickle.load(f)
