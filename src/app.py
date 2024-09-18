@@ -1,3 +1,6 @@
+app = dash.Dash(__name__)
+server = app.server 
+
 import dash
 from dash import dcc, html, Input, Output, State, callback, no_update, ALL
 from dash.exceptions import PreventUpdate
@@ -273,5 +276,4 @@ def ordinal_suffix(rank):
 
 # Run the app
 if __name__ == '__main__':
-    server = app.server
     app.run_server(debug=False)
