@@ -1,8 +1,9 @@
+import dash
+from dash import dcc, html, Input, Output, State, callback, no_update, ALL
+
 app = dash.Dash(__name__)
 server = app.server 
 
-import dash
-from dash import dcc, html, Input, Output, State, callback, no_update, ALL
 from dash.exceptions import PreventUpdate
 import ast
 import plotly.express as px
@@ -13,9 +14,6 @@ from layout import create_app_layout, map_to_year
 import warnings
 
 warnings.filterwarnings('ignore')
-
-# Initialize the Dash app
-app = dash.Dash(__name__)
 
 # Load and process data
 df, min_year, max_year = load_and_process_data()
