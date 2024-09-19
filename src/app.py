@@ -207,7 +207,7 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
     # Update layout with new size
     if window_size:
         fig.update_layout(
-            height=window_size['height'] * 0.7,  # 70% of window height
+            height=window_size['height'] * 0.6,
             width=window_size['width']
         )
 
