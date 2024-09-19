@@ -1,5 +1,6 @@
 import dash
 from dash import dcc, html, Input, Output, State, callback, no_update, ALL
+import os
 
 app = dash.Dash(__name__)
 server = app.server 
@@ -15,12 +16,54 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
+# Determine the correct path for the data file
+if os.environ.get('RENDER') == 'true':
+    DATA_FILE = 'top_10000_people_articles.csv'
+else:
+    DATA_FILE = 'src/top_10000_people_articles.csv'
+
 # Load and process data
 df, min_year, max_year = load_and_process_data()
 unique_occupations = get_unique_occupations(df)
 
+# Initialize with the max year
+initial_year = max_year
+df_initial = df[(df['birth'] <= initial_year) & ((df['death'] >= initial_year) | df['death'].isna())]
+
+# Add custom CSS
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            #map-container {
+                height: 70vh;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
+
 # Create the app layout
-app.layout = create_app_layout(unique_occupations, min_year, max_year)
+app.layout = create_app_layout(unique_occupations, min_year, max_year, df_initial)
 
 # Initialize the FigureGroupFinder
 figure_finder = communities.FigureGroupFinder(None)
@@ -40,6 +83,16 @@ def get_app_title(selected_occupation, article_name, year):
         app_title = f"Important Figures Alive in {year}"
     return app_title
 
+app.clientside_callback(
+    """
+    function(n_intervals) {
+        return {width: window.innerWidth, height: window.innerHeight};
+    }
+    """,
+    Output('window-size', 'data'),
+    Input('interval-component', 'n_intervals')
+)
+
 @callback(
     [Output('world-map', 'figure'),
      Output('app-title', 'children')],
@@ -48,10 +101,11 @@ def get_app_title(selected_occupation, article_name, year):
      Input('filtered-links', 'children'),
      Input('group-dropdown', 'value'),
      Input('world-map', 'clickData'),
-     Input('wikipedia-link', 'children')],
+     Input('wikipedia-link', 'children'),
+     Input('window-size', 'data')],
     [State('world-map', 'relayoutData')]
 )
-def update_map(slider_value, selected_occupation, filtered_links, group_option, click_data, article_name, relayoutData):
+def update_map(slider_value, selected_occupation, filtered_links, group_option, click_data, article_name, window_size, relayoutData):
     selected_year = map_to_year(slider_value, min_year, max_year)
 
     # Filter the dataframe for the selected year
@@ -75,28 +129,30 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
     df_filtered['longitude_jittered'] = df_filtered['longitude'] + df_filtered['noise_lon']
 
     # Create the map
-    fig = px.scatter_mapbox(df_filtered,
-                            lat='latitude_jittered',
-                            lon='longitude_jittered',
-                            hover_name='article_name',
-                            hover_data={
-                                'latitude_jittered': False,
-                                'longitude_jittered': False,
-                                'latitude': False,
-                                'longitude': False,
-                                'color_value': False,
-                                'birth': True,
-                                'death': True
-                            },
-                            color='color_value',
-                            color_continuous_scale=[
-                                [0.0, "#6495ED"],
-                                [0.5, "#FFD700"],
-                                [1.0, "#FF0000"]
-                            ],
-                            labels={'color_value': 'Historical<br>Significance'},
-                            zoom=1.5,
-                            height=600)
+    if df_filtered.empty:
+        fig = px.scatter_mapbox()
+    else:
+        fig = px.scatter_mapbox(df_filtered,
+                                lat='latitude_jittered',
+                                lon='longitude_jittered',
+                                hover_name='article_name',
+                                hover_data={
+                                    'latitude_jittered': False,
+                                    'longitude_jittered': False,
+                                    'latitude': False,
+                                    'longitude': False,
+                                    'color_value': False,
+                                    'birth': True,
+                                    'death': True
+                                },
+                                color='color_value',
+                                color_continuous_scale=[
+                                    [0.0, "#6495ED"],
+                                    [0.5, "#FFD700"],
+                                    [1.0, "#FF0000"]
+                                ],
+                                labels={'color_value': 'Historical<br>Significance'},
+                                zoom=1.5)
 
     # Update hover template to handle missing death years
     fig.update_traces(
@@ -148,7 +204,18 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
         )
     )
 
-    app_title = get_app_title(selected_occupation, article_name, selected_year)
+    # Update layout with new size
+    if window_size:
+        fig.update_layout(
+            height=window_size['height'] * 0.7,  # 70% of window height
+            width=window_size['width']
+        )
+
+    # Modify this part to handle the initial title correctly
+    if article_name is None or article_name == "":
+        app_title = f"Important Figures Alive in {selected_year}"
+    else:
+        app_title = get_app_title(selected_occupation, article_name, selected_year)
 
     return fig, app_title
 
@@ -212,12 +279,7 @@ def toggle_modal(open_clicks, close_clicks, current_style):
     if button_id == 'open-modal-button':
         list_items = [
             html.Li(
-                html.A(
-                    f"{name}",
-                    href=df.loc[df['article_name'] == name, 'wikipedia link'].values[0],
-                    target="_blank",
-                    style={'color': '#3498db', 'textDecoration': 'none'}
-                ),
+                f"{name}",
                 style={'marginBottom': '10px', 'marginLeft': '20px'}
             )
             for name in df['article_name']

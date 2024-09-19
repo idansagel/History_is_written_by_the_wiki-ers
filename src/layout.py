@@ -1,5 +1,6 @@
 from dash import dcc, html
 import math
+import plotly.express as px
 
 def map_to_year(x: float, min_year: int, max_year: int) -> int:
     if not 0 <= x <= 1:
@@ -7,7 +8,7 @@ def map_to_year(x: float, min_year: int, max_year: int) -> int:
     scaled_x = math.pow(x, 0.2)
     return int(min_year + scaled_x * (max_year - min_year))
 
-def create_app_layout(unique_occupations, min_year, max_year):
+def create_app_layout(unique_occupations, min_year, max_year, df_initial):
     common_styles = {
         'fontFamily': '"Montserrat", sans-serif',
         'color': '#333',
@@ -52,6 +53,28 @@ def create_app_layout(unique_occupations, min_year, max_year):
         'transition': 'background-color 0.3s',
         'boxShadow': '0 2px 5px rgba(0,0,0,0.2)',
     }
+
+    # Create initial figure
+    initial_figure = px.scatter_mapbox(df_initial,
+                                       lat='latitude',
+                                       lon='longitude',
+                                       hover_name='article_name',
+                                       color='color_value',
+                                       color_continuous_scale=[
+                                           [0.0, "#6495ED"],
+                                           [0.5, "#FFD700"],
+                                           [1.0, "#FF0000"]
+                                       ],
+                                       zoom=1.5)
+    initial_figure.update_layout(
+        mapbox_style="open-street-map",
+        mapbox=dict(
+            center={"lat": 30, "lon": 15},
+            zoom=1.5
+        ),
+        margin={"r":0,"t":0,"l":0,"b":0},
+        height=600,
+    )
 
     return html.Div([
         html.Div([
@@ -110,14 +133,15 @@ def create_app_layout(unique_occupations, min_year, max_year):
         html.Div([
             dcc.Graph(
                 id='world-map',
+                figure=initial_figure,
                 config={
                     'displayModeBar': False,
                     'scrollZoom': True,
                     'doubleClick': 'reset+autosize',
-                    'modeBarButtonsToRemove': ['pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'zoom2d', 'sendDataToCloud', 'toggleHover', 'toggleSpikelines', 'resetViewMapbox'],
-                }
+                },
+                style={'height': '100%', 'width': '100%'}
             )
-        ], id='map-container', className="map-container", style=common_styles),
+        ], id='map-container', style={'height': '70vh', 'width': '100%'}),
 
         html.Div([
             dcc.Slider(
@@ -138,7 +162,7 @@ def create_app_layout(unique_occupations, min_year, max_year):
         html.Div([
             html.A(
                 id='wikipedia-link',
-                children="Click on a dot to open the Wikipedia page",
+                children="",
                 href="",
                 target="_blank",
                 className="wikipedia-link",
@@ -168,5 +192,8 @@ def create_app_layout(unique_occupations, min_year, max_year):
             'flexDirection': 'column',
             'alignItems': 'center',
             'marginTop': '0',
-        })
+        }),
+
+        dcc.Store(id='window-size'),
+        dcc.Interval(id='interval-component', interval=1000, n_intervals=0)
     ], className="app-container", style=common_styles)
