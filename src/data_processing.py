@@ -3,16 +3,10 @@ import numpy as np
 import datetime
 import itertools
 import ast
-import os
 
 def load_and_process_data():
     # Load the data
-    if os.environ.get('RENDER') == 'true':
-        DATA_FILE = 'top_10000_people_articles.csv'
-    else:
-        DATA_FILE = 'src/top_10000_people_articles.csv'
-
-    df = pd.read_csv(DATA_FILE)
+    df = pd.read_csv('top_10000_people_articles.csv')
 
     # Filter out rows where birth or death is NaN
     df = df.dropna(subset=['birth'])
