@@ -14,6 +14,7 @@ import communities
 from data_processing import load_and_process_data, get_unique_occupations
 from layout import create_app_layout, map_to_year
 import warnings
+import os
 
 warnings.filterwarnings('ignore')
 
@@ -276,4 +277,10 @@ def ordinal_suffix(rank):
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    if 'DYNO' in os.environ:
+        # Running on Heroku
+        port = int(os.environ.get('PORT', 5000))
+        app.run_server(host='0.0.0.0', port=port)
+    else:
+        # Running locally
+        app.run_server(debug=False)
