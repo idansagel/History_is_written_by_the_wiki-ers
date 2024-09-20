@@ -1,31 +1,30 @@
 import dash
 from dash import dcc, html, Input, Output, State, callback, no_update, ALL
+
+app = dash.Dash(__name__)
+server = app.server 
+
+import dash
+from dash import dcc, html, Input, Output, State, callback, no_update, ALL
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 import numpy as np
-from communities import get_or_create_precomputed_data, FigureGroupFinder
-from data_processing import load_and_process_data
+import communities
+from data_processing import load_and_process_data, get_unique_occupations
 from layout import create_app_layout, map_to_year
 import warnings
 import os
 
 warnings.filterwarnings('ignore')
 
-app = dash.Dash(__name__)
-server = app.server
-
 # Load and process data
 df, min_year, max_year, occupations = load_and_process_data()
 
 # Create the app layout
-app.layout = create_app_layout(occupations, min_year, max_year)
-
-# Load or create precomputed data
-figures_by_year, figures_by_occupation, figures_by_group = get_or_create_precomputed_data()
-# print(figures_by_group['neighbors'])
+app.layout = create_app_layout(unique_occupations, min_year, max_year)
 
 # Initialize the FigureGroupFinder
-figure_finder = FigureGroupFinder()
+figure_finder = communities.FigureGroupFinder(None)
 
 # Random number generator with a fixed seed
 rng = np.random.default_rng(seed=42)
@@ -47,28 +46,25 @@ def get_app_title(selected_occupation, article_name, year):
      Output('app-title', 'children')],
     [Input('year-slider', 'value'),
      Input('occupation-dropdown', 'value'),
-     Input('figure_id', 'children'),
+     Input('filtered-links', 'children'),
      Input('group-dropdown', 'value'),
      Input('world-map', 'clickData'),
      Input('wikipedia-link', 'children')],
     [State('world-map', 'relayoutData')]
 )
-def update_map(slider_value, selected_occupation, figure_id, group_option, click_data, article_name, relayoutData):
+def update_map(slider_value, selected_occupation, filtered_links, group_option, click_data, article_name, relayoutData):
     selected_year = map_to_year(slider_value, min_year, max_year)
 
-    # Use precomputed data for initial filtering
-    relevant_figures = set(figures_by_year[selected_year])
-    if selected_occupation != "All":
-        relevant_figures &= set(figures_by_occupation[selected_occupation])
+    # Filter the dataframe for the selected year
+    df_filtered = df[(df['birth'] <= selected_year) & ((df['death'] >= selected_year) | df['death'].isna())]
 
-    if figure_id and figure_id != "None":
-        if group_option == 'neighbors':
-            relevant_figures &= figures_by_group['neighbors'][figure_id]
-        elif group_option == 'louvain':
-            relevant_figures &= figures_by_group['louvain'][figure_id]
-    
-    # Filter the dataframe based on relevant figures
-    df_filtered = df[df['page_id'].isin(relevant_figures)]
+    # Apply occupation filter if one is selected
+    if selected_occupation != "All":
+        df_filtered = df_filtered[df_filtered['occupation'].apply(lambda x: selected_occupation in x)]
+
+    if filtered_links and filtered_links is not None:
+        page_id_to = ast.literal_eval(filtered_links)
+        df_filtered = df_filtered[df_filtered['page_id'].isin(page_id_to)]
 
     # Add tiny random noise to latitude and longitude
     if 'noise_lat' not in df_filtered.columns:
@@ -161,23 +157,20 @@ def update_map(slider_value, selected_occupation, figure_id, group_option, click
     [Output('wikipedia-link', 'href'),
      Output('wikipedia-link', 'children'),
      Output('description-display', 'children'),
-     Output('figure_id', 'children'),
+     Output('filtered-links', 'children'),
      Output('world-map', 'clickData', allow_duplicate=True)],
     [Input('world-map', 'clickData'),
-     Input('map-container', 'n_clicks')],
-    [State('world-map', 'clickData'),
-     State('figure_id', 'children')],
+     Input('map-container', 'n_clicks'),
+     Input('group-dropdown', 'value')],
+    [State('world-map', 'clickData')],
     prevent_initial_call=True
 )
-def update_click_data(click_data, n_clicks, current_click_data, figure_id):
+def update_click_data(click_data, n_clicks, group_option, current_click_data):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    if triggered_id == 'map-container':
-        return None, None, "", "None", None
-
-    if click_data is None:
-        return None, None, "", figure_id, None
+    if triggered_id == 'map-container' or click_data is None:
+        return None, None, "", None, None
 
     article_name = click_data['points'][0]['hovertext']
     
@@ -187,12 +180,20 @@ def update_click_data(click_data, n_clicks, current_click_data, figure_id):
     wiki_link = df.loc[row_idx, 'wikipedia link'].values[0]
     description = df.loc[row_idx, 'description'].values[0]
 
-    figure_id = df.loc[row_idx, 'page_id'].values[0]
+    main_id = df.loc[row_idx, 'page_id'].values[0]
+    figure_finder.main_id = main_id
+
+    if group_option == 'neighbors':
+        related_ids = figure_finder.get_neighbors()
+    elif group_option == 'louvain':
+        related_ids = figure_finder.get_cluster_members()
+    else:
+        related_ids = []
 
     article_display_text = article_name
     full_display_text = f"{description} (ranked: {rank}{ordinal_suffix(rank)})"
     
-    return wiki_link, article_display_text, full_display_text, figure_id, None
+    return wiki_link, article_display_text, full_display_text, str(related_ids), None
 
 @callback(
     Output('modal', 'style'),
@@ -280,4 +281,4 @@ if __name__ == '__main__':
         app.run_server(host='0.0.0.0', port=port)
     else:
         # Running locally
-        app.run_server(debug=True)
+        app.run_server(debug=False)

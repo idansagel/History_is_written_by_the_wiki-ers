@@ -132,7 +132,7 @@ def create_app_layout(unique_occupations, min_year, max_year):
             ),
         ], className="slider-container", style={**common_styles, **slider_style}),
         
-        html.Div(id='figure_id', style={'display': 'none'}),
+        html.Div(id='filtered-links', style={'display': 'none'}),
         html.Div(id='current-selection', style={'display': 'none'}),
 
         html.Div([
