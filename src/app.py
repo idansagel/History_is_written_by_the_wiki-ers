@@ -1,11 +1,10 @@
 import dash
 from dash import dcc, html, Input, Output, State, callback, no_update, ALL
 from dash.exceptions import PreventUpdate
-import ast
 import plotly.express as px
 import numpy as np
 from communities import get_or_create_precomputed_data, FigureGroupFinder
-from data_processing import load_and_process_data, get_unique_occupations
+from data_processing import load_and_process_data
 from layout import create_app_layout, map_to_year
 import warnings
 import os
@@ -16,11 +15,10 @@ app = dash.Dash(__name__)
 server = app.server
 
 # Load and process data
-df, min_year, max_year = load_and_process_data()
-unique_occupations = get_unique_occupations(df)
+df, min_year, max_year, occupations = load_and_process_data()
 
 # Create the app layout
-app.layout = create_app_layout(unique_occupations, min_year, max_year)
+app.layout = create_app_layout(occupations, min_year, max_year)
 
 # Load or create precomputed data
 figures_by_year, figures_by_occupation, figures_by_group = get_or_create_precomputed_data()
@@ -33,8 +31,8 @@ figure_finder = FigureGroupFinder()
 rng = np.random.default_rng(seed=42)
 
 def get_app_title(selected_occupation, article_name, year):
-    selected_occupation = selected_occupation.capitalize()
     if article_name is not None and selected_occupation == "All":
+        selected_occupation = selected_occupation.capitalize()
         app_title = f"Figures Related to {article_name} Alive in {year}"
     elif article_name is not None and selected_occupation != "All":
         app_title = f"Figures Related to {article_name} Alive in {year} with the Occupation {selected_occupation}"

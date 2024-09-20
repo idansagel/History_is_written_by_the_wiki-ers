@@ -4,15 +4,14 @@ import pickle
 import os
 from collections import defaultdict
 import logging
-from data_processing import load_and_process_data, get_unique_occupations
+from data_processing import load_and_process_data
 import math
 
 logging.basicConfig(level=logging.INFO)
 
 class FigureGroupFinder:
     def __init__(self):
-        self.data, self.min_year, self.max_year = load_and_process_data()
-        self.unique_occupations = get_unique_occupations(self.data)
+        self.data, self.min_year, self.max_year, self.unique_occupations = load_and_process_data()
         self.graph = None
         self.clusters = None
         self.neighbors_cache = {}
@@ -108,39 +107,24 @@ def precompute_data(figure_finder):
     figures_by_occupation = defaultdict(set)
     figures_by_group = {'neighbors': defaultdict(set), 'louvain': defaultdict(set)}
 
-    total_rows = len(figure_finder.data)
-    processed_rows = 0
-
     for _, row in figure_finder.data.iterrows():
         page_id = row['page_id']
         birth_year = int(row['birth'])
         death_year = int(row['death']) if pd.notna(row['death']) else figure_finder.max_year
 
         for year in range(birth_year, min(death_year, figure_finder.max_year) + 1):
-            figures_by_year[year].add(page_id)
+            if 1000 < year < 2025:
+                figures_by_year[year].add(page_id)
 
         for occupation in row['occupation']:
-            figures_by_occupation[occupation].add(page_id)
+            if occupation in figure_finder.unique_occupations:
+                figures_by_occupation[occupation].add(page_id)
 
         neighbors = figure_finder.get_neighbors(page_id)
         cluster_members = figure_finder.get_cluster_members(page_id)
 
         figures_by_group['neighbors'][page_id] = neighbors
         figures_by_group['louvain'][page_id] = cluster_members
-
-        # Add this page_id to its neighbors' lists
-        for neighbor in neighbors:
-            figures_by_group['neighbors'][neighbor].add(page_id)
-
-        processed_rows += 1
-        if processed_rows % 1000 == 0:
-            logging.info(f"Processed {processed_rows} rows out of {total_rows} total rows.")
-
-    logging.info(f"Processed all {processed_rows} rows out of {total_rows} total rows.")
-    
-    # Verify that neighbors are not empty
-    empty_neighbors = sum(1 for neighbors in figures_by_group['neighbors'].values() if not neighbors)
-    logging.info(f"Number of entries with empty neighbors: {empty_neighbors}")
 
     return figures_by_year, figures_by_occupation, figures_by_group
 
