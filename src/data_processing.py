@@ -25,9 +25,9 @@ def load_and_process_data():
     min_year = np.int16(df['birth'].min())
     max_year = datetime.datetime.now().year
 
-    return df, min_year, max_year, get_unique_occupations(df)
+    return df, min_year, max_year
 
-def get_unique_occupations(df, count=50):
+def get_unique_occupations(df):
     # Get unique occupations for the dropdown options
     df['occupation'] = df['occupation'].apply(lambda x: ast.literal_eval(x))
     all_occupations = list(itertools.chain(*df['occupation']))
@@ -35,4 +35,4 @@ def get_unique_occupations(df, count=50):
     unique_occupations = list(frequency.keys())
     unique_occupations.append("All")
     unique_occupations.sort(key=lambda x: (x != "All", -frequency.get(x, 0)))
-    return unique_occupations[:count]
+    return unique_occupations

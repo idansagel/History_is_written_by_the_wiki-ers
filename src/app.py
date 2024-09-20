@@ -13,15 +13,18 @@ import communities
 from data_processing import load_and_process_data, get_unique_occupations
 from layout import create_app_layout, map_to_year
 import warnings
+import ast
 import os
 
 warnings.filterwarnings('ignore')
 
 # Load and process data
-df, min_year, max_year, occupations = load_and_process_data()
+df, min_year, max_year = load_and_process_data()
+unique_occupations = get_unique_occupations(df)
 
 # Create the app layout
 app.layout = create_app_layout(unique_occupations, min_year, max_year)
+
 
 # Initialize the FigureGroupFinder
 figure_finder = communities.FigureGroupFinder(None)
