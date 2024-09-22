@@ -1,5 +1,6 @@
 from dash import dcc, html
 import math
+import plotly.graph_objects as go
 
 def map_to_year(x: float, min_year: int, max_year: int) -> int:
     if not 0 <= x <= 1:
@@ -108,14 +109,33 @@ def create_app_layout(unique_occupations, min_year, max_year):
         ], id='modal', className='modal', style={'display': 'none', 'position': 'fixed', 'top': '0', 'left': '0', 'width': '100%', 'height': '100%', 'backgroundColor': 'rgba(0, 0, 0, 0.5)', 'justifyContent': 'center', 'alignItems': 'center'}),
 
         html.Div([
-            dcc.Graph(
-                id='world-map',
-                config={
-                    'displayModeBar': False,
-                    'scrollZoom': True,
-                    'doubleClick': 'reset+autosize',
-                    'modeBarButtonsToRemove': ['pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'zoom2d', 'sendDataToCloud', 'toggleHover', 'toggleSpikelines', 'resetViewMapbox'],
-                }
+            dcc.Loading(
+                id="loading-1",
+                type="default",
+                children=[
+                    dcc.Graph(
+                        id='world-map',
+                        figure=go.Figure(
+                            layout=dict(
+                                mapbox=dict(
+                                    style="open-street-map",
+                                    center=dict(lat=30, lon=15),
+                                    zoom=1.5
+                                ),
+                                showlegend=False,
+                                hovermode=False,
+                                margin=dict(l=0, r=0, t=0, b=0),
+                                mapbox_style="open-street-map"
+                            )
+                        ),
+                        config={
+                            'displayModeBar': False,
+                            'scrollZoom': True,
+                            'doubleClick': 'reset+autosize',
+                            'modeBarButtonsToRemove': ['pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'zoom2d', 'sendDataToCloud', 'toggleHover', 'toggleSpikelines', 'resetViewMapbox'],
+                        }
+                    )
+                ]
             )
         ], id='map-container', className="map-container", style=common_styles),
 
