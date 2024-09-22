@@ -1,4 +1,5 @@
-from dash import dcc, html
+from dash import html, dcc
+import dash_bootstrap_components as dbc
 import math
 import plotly.graph_objects as go
 
@@ -109,35 +110,47 @@ def create_app_layout(unique_occupations, min_year, max_year):
         ], id='modal', className='modal', style={'display': 'none', 'position': 'fixed', 'top': '0', 'left': '0', 'width': '100%', 'height': '100%', 'backgroundColor': 'rgba(0, 0, 0, 0.5)', 'justifyContent': 'center', 'alignItems': 'center'}),
 
         html.Div([
-            dcc.Loading(
-                id="loading-1",
-                type="default",
-                children=[
-                    dcc.Graph(
-                        id='world-map',
-                        figure=go.Figure(
-                            layout=dict(
-                                mapbox=dict(
-                                    style="open-street-map",
-                                    center=dict(lat=30, lon=15),
-                                    zoom=1.5
-                                ),
-                                showlegend=False,
-                                hovermode=False,
-                                margin=dict(l=0, r=0, t=0, b=0),
-                                mapbox_style="open-street-map"
-                            )
+            dcc.Graph(
+                id='world-map',
+                figure=go.Figure(
+                    layout=dict(
+                        mapbox=dict(
+                            style="open-street-map",
+                            center=dict(lat=30, lon=15),
+                            zoom=1.5
                         ),
-                        config={
-                            'displayModeBar': False,
-                            'scrollZoom': True,
-                            'doubleClick': 'reset+autosize',
-                            'modeBarButtonsToRemove': ['pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'zoom2d', 'sendDataToCloud', 'toggleHover', 'toggleSpikelines', 'resetViewMapbox'],
-                        }
+                        showlegend=False,
+                        hovermode=False,
+                        margin=dict(l=0, r=0, t=0, b=0),
+                        mapbox_style="open-street-map"
                     )
-                ]
-            )
-        ], id='map-container', className="map-container", style=common_styles),
+                ),
+                config={
+                    'displayModeBar': False,
+                    'scrollZoom': True,
+                    'doubleClick': 'reset+autosize',
+                    'modeBarButtonsToRemove': ['pan2d', 'select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'zoom2d', 'sendDataToCloud', 'toggleHover', 'toggleSpikelines', 'resetViewMapbox'],
+                }
+            ),
+            html.Div(
+                [
+                    dbc.Spinner(color="#5DADE2", type="grow", size="lg"),
+                ],
+                id="loading-overlay",
+                style={
+                    "position": "absolute",
+                    "top": 0,
+                    "left": 0,
+                    "width": "100%",
+                    "height": "100%",
+                    "backgroundColor": "rgba(255, 255, 255, 0.5)",
+                    "display": "none",
+                    "justifyContent": "center",
+                    "alignItems": "center",
+                    "zIndex": 1000,
+                },
+            ),
+        ], id='map-container', className="map-container", style={**common_styles, "position": "relative"}),
 
         html.Div([
             dcc.Slider(

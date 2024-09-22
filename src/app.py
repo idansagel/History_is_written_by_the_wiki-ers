@@ -42,7 +42,8 @@ def get_app_title(selected_occupation, article_name, year):
 
 @callback(
     [Output('world-map', 'figure'),
-     Output('app-title', 'children')],
+     Output('app-title', 'children'),
+     Output('loading-overlay', 'style')],
     [Input('year-slider', 'value'),
      Input('occupation-dropdown', 'value'),
      Input('filtered-links', 'children'),
@@ -52,6 +53,20 @@ def get_app_title(selected_occupation, article_name, year):
     [State('world-map', 'relayoutData')]
 )
 def update_map(slider_value, selected_occupation, filtered_links, group_option, click_data, article_name, relayoutData):
+    # Show loading overlay
+    loading_style = {
+        "position": "absolute",
+        "top": 0,
+        "left": 0,
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "rgba(255, 255, 255, 0.5)",
+        "display": "flex",
+        "justifyContent": "center",
+        "alignItems": "center",
+        "zIndex": 1000,
+    }
+
     selected_year = map_to_year(slider_value, min_year, max_year)
 
     # Filter the dataframe for the selected year
@@ -152,8 +167,11 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
     if article_name == "Select any Dot":
         article_name = None
     app_title = get_app_title(selected_occupation, article_name, selected_year)
+    
+    # Hide loading overlay after the map is updated
+    loading_style["display"] = "none"
 
-    return fig, app_title
+    return fig, app_title, loading_style
 
 @callback(
     [Output('wikipedia-link', 'href'),
