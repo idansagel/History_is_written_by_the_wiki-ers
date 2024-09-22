@@ -6,7 +6,7 @@ from collections import defaultdict
 
 # Parameters
 chunk_size = 1000000  # Number of rows to process at once
-alpha = 0.85  # Damping factor for PageRank
+beta = 0.85  # Damping factor for PageRank
 output_file = 'pagerank_results.csv'  # Output file for PageRank results
 
 # Initialize lists to hold the data
@@ -37,7 +37,7 @@ graph = ig.Graph(edges=edges, directed=True)
 
 print("Computing PageRank...")
 # Compute PageRank using igraph's implementation
-pagerank_scores = graph.pagerank(damping=alpha, implementation="prpack")
+pagerank_scores = graph.pagerank(damping=beta, implementation="prpack")
 
 # Create a DataFrame with the results, mapping back to original IDs
 pagerank_df = pd.DataFrame({

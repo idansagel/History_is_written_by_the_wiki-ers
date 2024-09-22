@@ -1,11 +1,5 @@
 import dash
 from dash import dcc, html, Input, Output, State, callback, no_update, ALL
-
-app = dash.Dash(__name__)
-server = app.server 
-
-import dash
-from dash import dcc, html, Input, Output, State, callback, no_update, ALL
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 import numpy as np
@@ -18,13 +12,15 @@ import os
 
 warnings.filterwarnings('ignore')
 
+app = dash.Dash(__name__)
+server = app.server
+
 # Load and process data
 df, min_year, max_year = load_and_process_data()
 unique_occupations = get_unique_occupations(df)
 
 # Create the app layout
 app.layout = create_app_layout(unique_occupations, min_year, max_year)
-
 
 # Initialize the FigureGroupFinder
 figure_finder = communities.FigureGroupFinder(None)
@@ -152,6 +148,9 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
         )
     )
 
+    # Use get_app_title function to set the title
+    if article_name == "Select any Dot":
+        article_name = None
     app_title = get_app_title(selected_occupation, article_name, selected_year)
 
     return fig, app_title
@@ -173,7 +172,7 @@ def update_click_data(click_data, n_clicks, group_option, current_click_data):
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if triggered_id == 'map-container' or click_data is None:
-        return None, None, "", None, None
+        return None, "Select any Dot", "", None, None
 
     article_name = click_data['points'][0]['hovertext']
     
@@ -218,9 +217,7 @@ def toggle_modal(open_clicks, close_clicks, current_style):
             html.Li(
                 html.A(
                     f"{name}",
-                    href=df.loc[df['article_name'] == name, 'wikipedia link'].values[0],
                     target="_blank",
-                    style={'color': '#3498db', 'textDecoration': 'none'}
                 ),
                 style={'marginBottom': '10px', 'marginLeft': '20px'}
             )

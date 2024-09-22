@@ -287,7 +287,7 @@ merged_output_file = 'merged_data.csv'
 output_file = 'top_10000_people_articles_backup.csv'
 
 # Step 1: Merge and save
-# merge_and_save_data(pagerank_file, people_articles_file, wikilinks_file, merged_output_file)
+merge_and_save_data(pagerank_file, people_articles_file, wikilinks_file, merged_output_file)
 
 # Step 2: Fetch Wikidata and save
 fetch_wikidata_and_save(merged_output_file, output_file)

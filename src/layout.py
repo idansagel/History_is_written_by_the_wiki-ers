@@ -80,12 +80,12 @@ def create_app_layout(unique_occupations, min_year, max_year):
                     )
                 ], style=pair_style),
                 html.Div([
-                    html.Label("Related According to:", style=label_style),
+                    html.Label("Related by:", style=label_style),
                     dcc.Dropdown(
                         id='group-dropdown',
                         options=[
-                            {'label': 'In & Out Wikipedia Links', 'value': 'neighbors'},
-                            {'label': 'Louvain Cluster', 'value': 'louvain'}
+                            {'label': 'Share Wikipedia Links', 'value': 'neighbors'},
+                            {'label': 'Same Cluster', 'value': 'louvain'}
                         ],
                         value='neighbors',
                         placeholder="Select a group option",
@@ -93,7 +93,7 @@ def create_app_layout(unique_occupations, min_year, max_year):
                         clearable=False
                     )
                 ], style=pair_style),
-                html.Button('Show List of Articles and Ranks', id='open-modal-button', style=button_style),
+                html.Button('Ranks List', id='open-modal-button', style=button_style),
             ], style=dropdown_container_style),
         ], className="header", style=common_styles),
 
@@ -138,8 +138,7 @@ def create_app_layout(unique_occupations, min_year, max_year):
         html.Div([
             html.A(
                 id='wikipedia-link',
-                children="Click on a dot to open the Wikipedia page",
-                href="",
+                children="Select any Dot",
                 target="_blank",
                 className="wikipedia-link",
                 style={
