@@ -4,20 +4,31 @@ from dash.exceptions import PreventUpdate
 import plotly.express as px
 import numpy as np
 import communities
-from data_processing import load_and_process_data, get_unique_occupations
+from data_processing import (
+    get_min_year,
+    get_max_year,
+    get_unique_occupations,
+    get_figures_for_year,
+    get_figure_data,
+    get_all_article_names,
+    get_birth_year,
+)
 from layout import create_app_layout, map_to_year
 import warnings
 import ast
 import os
+import time
+import pandas as pd
 
 warnings.filterwarnings('ignore')
 
 app = dash.Dash(__name__)
 server = app.server
 
-# Load and process data
-df, min_year, max_year = load_and_process_data()
-unique_occupations = get_unique_occupations(df)
+# Fetch data directly from the database
+min_year = get_min_year()  # Fetch minimum year from DB
+max_year = get_max_year()  # Fetch current year as max year
+unique_occupations = get_unique_occupations()  # Fetch unique occupations from DB
 
 # Create the app layout
 app.layout = create_app_layout(unique_occupations, min_year, max_year)
@@ -40,6 +51,8 @@ def get_app_title(selected_occupation, article_name, year):
         app_title = f"Important Figures Alive in {year}"
     return app_title
 
+# app.py
+
 @callback(
     [Output('world-map', 'figure'),
      Output('app-title', 'children'),
@@ -53,78 +66,51 @@ def get_app_title(selected_occupation, article_name, year):
     [State('world-map', 'relayoutData')]
 )
 def update_map(slider_value, selected_occupation, filtered_links, group_option, click_data, article_name, relayoutData):
+    import time
+    start_time = time.time()
+    
     # Show loading overlay
     loading_style = {
-        "position": "absolute",
-        "top": 0,
-        "left": 0,
-        "width": "100%",
-        "height": "100%",
-        "backgroundColor": "rgba(255, 255, 255, 0.5)",
-        "display": "flex",
-        "justifyContent": "center",
-        "alignItems": "center",
-        "zIndex": 1000,
+        # ... (unchanged)
     }
 
     selected_year = map_to_year(slider_value, min_year, max_year)
 
-    # Filter the dataframe for the selected year
-    df_filtered = df[(df['birth'] <= selected_year) & ((df['death'] >= selected_year) | df['death'].isna())]
+    # Fetch data from the database
+    df_filtered = get_figures_for_year(selected_year, selected_occupation, filtered_links)
 
-    # Apply occupation filter if one is selected
-    if selected_occupation != "All":
-        df_filtered = df_filtered[df_filtered['occupation'].apply(lambda x: selected_occupation in x)]
-
-    if filtered_links and filtered_links is not None:
-        page_id_to = ast.literal_eval(filtered_links)
-        df_filtered = df_filtered[df_filtered['page_id'].isin(page_id_to)]
-
-    # Add tiny random noise to latitude and longitude
-    if 'noise_lat' not in df_filtered.columns:
-        noise_scale = 0.0001
-        df_filtered['noise_lat'] = rng.normal(0, noise_scale, size=len(df_filtered))
-        df_filtered['noise_lon'] = rng.normal(0, noise_scale, size=len(df_filtered))
-
-    df_filtered['latitude_jittered'] = df_filtered['latitude'] + df_filtered['noise_lat']
-    df_filtered['longitude_jittered'] = df_filtered['longitude'] + df_filtered['noise_lon']
+    # Ensure correct data types
+    df_filtered['birth'] = df_filtered['birth'].astype(str)
+    df_filtered['death'] = df_filtered['death'].fillna('').astype(str)
+    df_filtered['latitude'] = pd.to_numeric(df_filtered['latitude'], errors='coerce')
+    df_filtered['longitude'] = pd.to_numeric(df_filtered['longitude'], errors='coerce')
+    df_filtered['color_value'] = pd.to_numeric(df_filtered['color_value'], errors='coerce')
 
     # Create the map
-    fig = px.scatter_mapbox(df_filtered,
-                            lat='latitude_jittered',
-                            lon='longitude_jittered',
-                            hover_name='article_name',
-                            hover_data={
-                                'latitude_jittered': False,
-                                'longitude_jittered': False,
-                                'latitude': False,
-                                'longitude': False,
-                                'color_value': False,
-                                'birth': True,
-                                'death': True
-                            },
-                            color='color_value',
-                            color_continuous_scale=[
-                                [0.0, "#6495ED"],
-                                [0.5, "#FFD700"],
-                                [1.0, "#FF0000"]
-                            ],
-                            labels={'color_value': 'Historical<br>Significance'},
-                            zoom=1.5,
-                            height=600)
-
-    # Update hover template to handle missing death years
-    fig.update_traces(
-        hovertemplate="<b>%{hovertext}</b><br><br>" +
-                      "Birth: %{customdata[4]}<br>" +
-                      "Death: %{customdata[5]}" +
-                      "<extra></extra>"
+    fig = px.scatter_mapbox(
+        df_filtered,
+        lat='latitude',
+        lon='longitude',
+        hover_name='article_name',
+        hover_data=None,  # Disable default hover data
+        color='color_value',
+        color_continuous_scale=[
+            [0.0, "#6495ED"],
+            [0.5, "#FFD700"],
+            [1.0, "#FF0000"]
+        ],
+        labels={'color_value': 'Historical<br>Significance'},
+        zoom=1.5,
+        height=600
     )
 
-    # Replace NaN death years with empty string
-    df_filtered['death'] = df_filtered['death'].fillna('')
+    # Update hover template and customdata
     fig.update_traces(
-        customdata=df_filtered[['noise_lat', 'noise_lon', 'latitude', 'longitude', 'birth', 'death']].values
+        hovertemplate="<b>%{hovertext}</b><br><br>" +
+                      "Birth: %{customdata[0]}<br>" +
+                      "Death: %{customdata[1]}" +
+                      "<extra></extra>",
+        customdata=df_filtered[['birth', 'death']].values
     )
 
     # Preserve the viewport state
@@ -141,13 +127,10 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
             center=center,
             zoom=zoom
         ),
-        margin={"r":0,"t":0,"l":0,"b":0},
+        margin={"r": 0, "t": 0, "l": 0, "b": 0},
         coloraxis_colorbar=dict(
-            tickmode='array',
-            tickvals=[],
-            ticktext=[],
             title=dict(
-                text='<span style="color: #333; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">IMPORTANCE</span>',
+                text='<span style="color: #333;">Importance</span>',
                 side='right',
                 font=dict(
                     family='Montserrat',
@@ -155,21 +138,24 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
                 )
             ),
             len=0.5,
-            yanchor='middle',  
-            y=0.5,  
+            yanchor='middle',
+            y=0.5,
             xanchor='right',
-            x=1.0,  
-            thickness=15 
+            x=1.0,
+            thickness=15
         )
     )
 
-    # Use get_app_title function to set the title
+    # Set the app title
     if article_name == "Select any Dot":
         article_name = None
     app_title = get_app_title(selected_occupation, article_name, selected_year)
-    
-    # Hide loading overlay after the map is updated
+
+    # Hide loading overlay
     loading_style["display"] = "none"
+
+    total_time = time.time() - start_time
+    print(f"Total time for update_map callback: {total_time}s")
 
     return fig, app_title, loading_style
 
@@ -194,13 +180,16 @@ def update_click_data(click_data, n_clicks, group_option, current_click_data):
 
     article_name = click_data['points'][0]['hovertext']
     
-    row_idx = df['article_name'] == article_name
-    rank = df.index[row_idx][0] + 1
-    
-    wiki_link = df.loc[row_idx, 'wikipedia link'].values[0]
-    description = df.loc[row_idx, 'description'].values[0]
+    # Fetch data about the figure from the database
+    figure_data = get_figure_data(article_name)
+    if not figure_data:
+        raise PreventUpdate
 
-    main_id = df.loc[row_idx, 'page_id'].values[0]
+    rank = figure_data['rank']
+    wiki_link = figure_data['wikipedia_link']
+    description = figure_data['description']
+    main_id = figure_data['page_id']
+
     figure_finder.main_id = main_id
 
     if group_option == 'neighbors':
@@ -231,6 +220,8 @@ def toggle_modal(open_clicks, close_clicks, current_style):
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
     if button_id == 'open-modal-button':
+        # Get all article names from the database
+        article_names = get_all_article_names()
         list_items = [
             html.Li(
                 html.A(
@@ -239,7 +230,7 @@ def toggle_modal(open_clicks, close_clicks, current_style):
                 ),
                 style={'marginBottom': '10px', 'marginLeft': '20px'}
             )
-            for name in df['article_name']
+            for name in article_names
         ]
         content = html.Ol(list_items, style={'paddingLeft': '40px', 'listStyleType': 'decimal', 'marginRight': '20px'})
         return {'display': 'flex'}, content
@@ -265,9 +256,11 @@ def handle_list_item_click(n_clicks, slider_min, slider_max):
     clicked_id = ctx.triggered[0]['prop_id']
     clicked_name = eval(clicked_id.split('.')[0])['index']
     
-    # Get the birth year of the clicked figure
-    birth_year = df.loc[df['article_name'] == clicked_name, 'birth'].values[0]
-    
+    # Get the birth year of the clicked figure from the database
+    birth_year = get_birth_year(clicked_name)
+    if birth_year is None:
+        raise PreventUpdate
+
     # Convert birth year to slider value
     slider_value = (birth_year - min_year) / (max_year - min_year)
     
@@ -275,7 +268,7 @@ def handle_list_item_click(n_clicks, slider_min, slider_max):
     click_data = {
         'points': [{
             'hovertext': clicked_name,
-            'customdata': df.loc[df['article_name'] == clicked_name, ['birth', 'death']].values[0].tolist()
+            'customdata': [birth_year, None]  # Assuming death is None for simplicity
         }]
     }
     

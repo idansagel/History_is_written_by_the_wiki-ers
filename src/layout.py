@@ -3,11 +3,15 @@ import dash_bootstrap_components as dbc
 import math
 import plotly.graph_objects as go
 
+import math
+
 def map_to_year(x: float, min_year: int, max_year: int) -> int:
     if not 0 <= x <= 1:
         raise ValueError("x must be between 0 and 1 inclusive")
     scaled_x = math.pow(x, 0.2)
-    return int(min_year + scaled_x * (max_year - min_year))
+    
+    # Ensure min_year and max_year are treated as floats for arithmetic
+    return int(float(min_year) + scaled_x * (float(max_year) - float(min_year)))
 
 def create_app_layout(unique_occupations, min_year, max_year):
     common_styles = {
