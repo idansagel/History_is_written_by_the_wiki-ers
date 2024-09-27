@@ -38,9 +38,21 @@ df = add_noise_to_coordinates(df)
 # Remove rows where 'birth' is null or empty
 df = df.dropna(subset=['birth'])  # This line removes rows with missing birth years
 
-# Ensure birth and death years are integers
-df['birth'] = df['birth'].fillna(0).astype(int)
-df['death'] = df['death'].fillna(0).astype(int)
+# Ensure birth column is converted to nullable integer (Int64)
+df['birth'] = df['birth'].astype('Int64')
+
+# Function to process death column
+def process_death(death_value):
+    if pd.isna(death_value):
+        return pd.NA  # Use pandas NA for missing values
+    else:
+        return int(death_value)  # Cast non-NaN to int
+
+# Apply the function to the death column and set dtype to Int64
+df['death'] = df['death'].apply(process_death).astype('Int64')
+
+# Check if the changes were applied successfully
+print(df[['birth', 'death']].head())
 
 # Normalize the row index for the color of the dots on the map
 def calculate_color_value(df):
@@ -65,11 +77,11 @@ def fix_outgoing_links_column(column_data):
             # If it's not a list or string, return an empty array or string representation
             return '{}'
     except (ValueError, SyntaxError, TypeError):
-        # If there's an issue (e.g., NaN or improper format), return NULL or empty array
+        # If there's an issue (e.g., NaN or improper format), return empty array
         return '{}'
 
 # Apply the function to fix 'outgoing_link_ids' column
 df['outgoing_link_ids'] = df['outgoing_link_ids'].apply(fix_outgoing_links_column)
 
 # Save the processed DataFrame to CSV without adding extra quotes
-df.to_csv(output_file, index=False, quoting=csv.QUOTE_MINIMAL)
+df.to_csv(output_file, index=False, quoting=csv.QUOTE_MINIMAL, na_rep='')

@@ -176,17 +176,18 @@ def get_figure_data(article_name):
 def get_all_article_names():
     conn = connect_db()
     cur = conn.cursor()
-    
+
+    # If you want to rank by pagerank_score, you can do this:
     query = """
     SELECT article_name
     FROM public.top_figures
-    ORDER BY rank ASC
+    ORDER BY pagerank_score DESC;  -- Ordering by pagerank_score instead of rank
     """
-    
+
     cur.execute(query)
     article_names = [row[0] for row in cur.fetchall()]
     cur.close()
-    
+
     return article_names
 
 # Fetch the birth year of a figure by article name
