@@ -11,11 +11,6 @@
     }
 }
 
-/* Make dropdowns full width */
-.dropdown {
-    width: 100%;
-}
-
 /* Adjust label font size on small screens */
 .label {
     font-weight: bold;
@@ -42,11 +37,15 @@
 
 /* Responsive adjustments for small screens */
 @media (max-width: 576px) {
-    .dropdown .Select-menu-outer {
-        max-width: 150px; /* Smaller width for smaller screens */
+    /* Set the width of the dropdown menu */
+    .Select-menu-outer {
+        width: 300px;  /* Adjust this value as needed */
     }
-    
-    .dropdown .Select-control {
-        min-width: 100px;
+
+    /* Truncate long options with ellipsis */
+    .VirtualizedSelectOption {
+        max-width: 80px;  /* Slightly less than menu width to account for padding */
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
 }
