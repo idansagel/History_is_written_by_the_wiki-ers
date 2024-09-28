@@ -21,6 +21,7 @@
         font-size: 0.9rem;
     }
 }
+
 /* Responsive adjustments for small screens */
 @media (max-width: 576px) {
     /* Set the width of the dropdown menu */
@@ -28,14 +29,25 @@
         width: 300px;  /* Adjust this value as needed */
     }
 
-    .Select dropdown has-value is-focused is-pseudo-focused is-searchable Select--single {
-        width: 300px;  /* Adjust this value as needed */
+    /* Make options fill the full width of the menu */
+    .VirtualizedSelectOption {
+        width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    /* Truncate long options with ellipsis */
-    .VirtualizedSelectOption {
-        max-width: 80px;
+    /* Optionally, adjust the inner text container */
+    .VirtualizedSelectOption > span {
+        display: block;
+        max-width: 280px;  /* Slightly less than menu width to account for padding */
         white-space: nowrap;
+        overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    /* Adjust the width of the dropdown control (the selected value display) */
+    .Select-control {
+        width: 300px;  /* Same as .Select-menu-outer width */
     }
 }
