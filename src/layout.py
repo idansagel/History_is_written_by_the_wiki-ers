@@ -183,9 +183,9 @@ def create_app_layout(unique_occupations, min_year, max_year):
                 html.A(
                     id='wikipedia-link',
                     children="Select any Dot",
-                    target="_blank",
                     className="wikipedia-link",
-                    style={
+                    style=
+                    {  # Styling to make it appear as regular text
                         'fontFamily': '"Montserrat", sans-serif',
                         'fontSize': '18px',
                         'textAlign': 'center',
@@ -194,7 +194,10 @@ def create_app_layout(unique_occupations, min_year, max_year):
                         'textTransform': 'uppercase',
                         'letterSpacing': '1px',
                         'fontWeight': 'bold',
-                    }
+                        'pointerEvents': 'none',  # Disable clicking
+                        'color': '#333',  # Text color
+                        'textDecoration': 'none'  # Remove underline
+                    },
                 ),
                 html.Div(
                     id='description-display',

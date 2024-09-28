@@ -169,27 +169,61 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
     return fig, app_title, loading_style
 
 # Callback to update click data and related information
+# app.py (continued)
+
+# Import additional dependencies if not already present
+from dash import html
+
+# Update the callback to include the 'style' property for 'wikipedia-link'
 @callback(
-    [Output('wikipedia-link', 'href'),
-     Output('wikipedia-link', 'children'),
-     Output('description-display', 'children'),
-     Output('filtered-links', 'children'),
-     Output('world-map', 'clickData', allow_duplicate=True)],
-    [Input('world-map', 'clickData'),
-     Input('map-container', 'n_clicks'),
-     Input('group-dropdown', 'value')],
-    [State('world-map', 'clickData')],
+    [
+        Output('wikipedia-link', 'href'),
+        Output('wikipedia-link', 'children'),
+        Output('wikipedia-link', 'style'),  # New Output for styling
+        Output('description-display', 'children'),
+        Output('filtered-links', 'children'),
+        Output('world-map', 'clickData', allow_duplicate=True)
+    ],
+    [
+        Input('world-map', 'clickData'),
+        Input('map-container', 'n_clicks'),
+        Input('group-dropdown', 'value')
+    ],
+    [
+        State('world-map', 'clickData')
+    ],
     prevent_initial_call=True
 )
 def update_click_data(click_data, n_clicks, group_option, current_click_data):
     ctx = dash.callback_context
     triggered_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
+    # When the map container is clicked or no click data is present
     if triggered_id == 'map-container' or click_data is None:
-        return None, "Select any Dot", "", None, None
+        return (
+            None,  # href set to None makes it non-clickable
+            "Select any Dot",  # Display text
+            {  # Styling to make it appear as regular text
+                'fontFamily': '"Montserrat", sans-serif',
+                'fontSize': '18px',
+                'textAlign': 'center',
+                'display': 'block',
+                'marginBottom': '10px',
+                'textTransform': 'uppercase',
+                'letterSpacing': '1px',
+                'fontWeight': 'bold',
+                'pointerEvents': 'none',  # Disable clicking
+                'color': '#333',  # Text color
+                'textDecoration': 'none'  # Remove underline
+            },
+            "",  # Clear description
+            None,  # Clear filtered links
+            None  # Reset clickData
+        )
 
+    # When a dot on the map is clicked
     article_name = click_data['points'][0]['hovertext']
-    
+
     # Fetch data about the figure from the database
     figure_data = get_figure_data(article_name)
     if not figure_data:
@@ -211,8 +245,30 @@ def update_click_data(click_data, n_clicks, group_option, current_click_data):
 
     article_display_text = article_name
     full_display_text = f"{description} (ranked: {rank}{ordinal_suffix(rank)})"
-    
-    return wiki_link, article_display_text, full_display_text, str(related_ids), None
+
+    # Styling to make it appear as a clickable link
+    link_style = {
+        'fontFamily': '"Montserrat", sans-serif',
+        'fontSize': '18px',
+        'textAlign': 'center',
+        'display': 'block',
+        'marginBottom': '10px',
+        'textTransform': 'uppercase',
+        'letterSpacing': '1px',
+        'fontWeight': 'bold',
+        'pointerEvents': 'auto',  # Enable clicking
+        'color': '#1a0dab',  # Standard link color
+        'textDecoration': 'underline'  # Underline to indicate it's clickable
+    }
+
+    return (
+        wiki_link,  # href set to the Wikipedia link
+        article_display_text,  # Display the figure's name
+        link_style,  # Apply link styling
+        full_display_text,  # Update description
+        str(related_ids),  # Update filtered links
+        None  # Reset clickData
+    )
 
 # Callback to toggle the modal visibility and populate its content
 @callback(
