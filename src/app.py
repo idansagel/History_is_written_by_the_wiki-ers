@@ -102,7 +102,6 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
         ],
         labels={'color_value': 'Historical<br>Significance'},
         zoom=1.5,
-        height=600
     )
 
     # Update hover template and customdata
@@ -293,4 +292,4 @@ if __name__ == '__main__':
         app.run_server(host='0.0.0.0', port=port)
     else:
         # Running locally
-        app.run_server(debug=False)
+        app.run_server(debug=True)

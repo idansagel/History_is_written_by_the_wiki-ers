@@ -62,7 +62,7 @@ def create_app_layout(unique_occupations, min_year, max_year):
                     clearable=False,
                     className='dropdown'
                 )
-            ], xs=3, sm=3, md=3, lg=3),
+            ], xs=4, sm=3, md=3, lg=3),
             dbc.Col([
                 html.Label("Related by:", className="label", style={'fontWeight': 'bold'}),
                 dcc.Dropdown(
@@ -76,11 +76,11 @@ def create_app_layout(unique_occupations, min_year, max_year):
                     clearable=False,
                     className='dropdown'
                 )
-            ], xs=3, sm=3, md=3, lg=3),
+            ], xs=4, sm=3, md=3, lg=3),
             dbc.Col([
                 html.Label("select", className="label", style={'fontWeight': 'bold', 'visibility': 'hidden'}),  # add invisible label to match dropdowns
                 html.Button('Ranks List', id='open-modal-button', style=button_style),
-            ], xs=3, sm=3, md=3, lg=3),
+            ], xs=4, sm=3, md=3, lg=3),
         ], justify="center", align="center", className="mb-4"),
 
         # Modal Div
@@ -130,7 +130,8 @@ def create_app_layout(unique_occupations, min_year, max_year):
                                     'hoverCompareCartesian', 'zoom2d', 'sendDataToCloud',
                                     'toggleHover', 'toggleSpikelines', 'resetViewMapbox',
                                 ],
-                            }
+                            },
+                            style={'height': '50vh'}
                         ),
                         html.Div(
                             [
