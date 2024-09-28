@@ -23,6 +23,7 @@ import pandas as pd
 
 warnings.filterwarnings('ignore')
 
+# Initialize the Dash app with Bootstrap stylesheet
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
@@ -52,8 +53,7 @@ def get_app_title(selected_occupation, article_name, year):
         app_title = f"Important Figures Alive in {year}"
     return app_title
 
-# app.py
-
+# Callback to update the map, app title, and loading overlay
 @callback(
     [Output('world-map', 'figure'),
      Output('app-title', 'children'),
@@ -72,7 +72,16 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
     
     # Show loading overlay
     loading_style = {
-        # ... (unchanged)
+        "position": "absolute",
+        "top": 0,
+        "left": 0,
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "rgba(255, 255, 255, 0.5)",
+        "display": "flex",
+        "justifyContent": "center",
+        "alignItems": "center",
+        "zIndex": 1000,
     }
 
     selected_year = map_to_year(slider_value, min_year, max_year)
@@ -159,6 +168,7 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
 
     return fig, app_title, loading_style
 
+# Callback to update click data and related information
 @callback(
     [Output('wikipedia-link', 'href'),
      Output('wikipedia-link', 'children'),
@@ -204,6 +214,7 @@ def update_click_data(click_data, n_clicks, group_option, current_click_data):
     
     return wiki_link, article_display_text, full_display_text, str(related_ids), None
 
+# Callback to toggle the modal visibility and populate its content
 @callback(
     Output('modal', 'style'),
     Output('list-container', 'children'),
@@ -239,6 +250,7 @@ def toggle_modal(open_clicks, close_clicks, current_style):
     else:
         return no_update, no_update
 
+# Callback to handle clicks on list items within the modal
 @callback(
     Output('year-slider', 'value'),
     Output('world-map', 'clickData', allow_duplicate=True),
@@ -254,7 +266,15 @@ def handle_list_item_click(n_clicks, slider_min, slider_max):
         return no_update, no_update, no_update
     
     clicked_id = ctx.triggered[0]['prop_id']
-    clicked_name = eval(clicked_id.split('.')[0])['index']
+    try:
+        # Extract the index from the pattern-matched ID
+        pattern_id = ast.literal_eval(clicked_id.split('.')[0])
+        if pattern_id.get('type') == 'list-item':
+            clicked_name = pattern_id.get('index')
+        else:
+            return no_update, no_update, no_update
+    except (ValueError, SyntaxError):
+        return no_update, no_update, no_update
     
     # Get the birth year of the clicked figure from the database
     birth_year = get_birth_year(clicked_name)

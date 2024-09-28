@@ -1,28 +1,51 @@
 /* assets/custom.css */
 
-/* Adjust title font size on small screens */
+/* ---------------------------------------------------
+   General Styles
+---------------------------------------------------- */
+
+/* Common font family and text color for the application */
+.app-container {
+    font-family: "Montserrat", sans-serif;
+    color: #333;
+}
+
+/* ---------------------------------------------------
+   Title Styles
+---------------------------------------------------- */
+
+/* Adjust title font size on larger screens */
 .app-title {
     font-size: 2rem;
 }
 
+/* Adjust title font size on small screens */
 @media (max-width: 576px) {
     .app-title {
         font-size: 1rem;
     }
 }
 
-/* Adjust label font size on small screens */
+/* ---------------------------------------------------
+   Label Styles
+---------------------------------------------------- */
+
+/* Make labels bold by default */
 .label {
     font-weight: bold;
 }
 
+/* Adjust label font size on small screens */
 @media (max-width: 576px) {
     .label {
         font-size: 0.9rem;
     }
 }
 
-/* Responsive adjustments for small screens */
+/* ---------------------------------------------------
+   Dropdown Menu Styles for Small Screens
+---------------------------------------------------- */
+
 @media (max-width: 576px) {
     /* Set the width of the dropdown menu */
     .Select-menu-outer {
@@ -50,4 +73,33 @@
     .Select-control {
         width: 100px;  /* Same as .Select-menu-outer width */
     }
+
+    /* ---------------------------------------------------
+       "Ranks List" Button Responsive Styles
+    ---------------------------------------------------- */
+
+    /* Hide the full text ("Ranks List") on small screens */
+    .ranks-full {
+        display: none !important;
+    }
+
+    /* Show the short text ("ranks") on small screens */
+    .ranks-short {
+        display: inline !important;
+    }
+}
+
+/* ---------------------------------------------------
+   "Ranks List" Button Default Styles
+---------------------------------------------------- */
+
+/* Hide the short text ("ranks") by default on larger screens */
+.ranks-short {
+    display: none;
+}
+
+/* Optional: Add transition effects for smooth text changes */
+.ranks-full,
+.ranks-short {
+    transition: opacity 0.3s ease, display 0.3s ease;
 }

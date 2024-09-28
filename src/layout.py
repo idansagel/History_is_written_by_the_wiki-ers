@@ -79,7 +79,14 @@ def create_app_layout(unique_occupations, min_year, max_year):
             ], xs=4, sm=3, md=3, lg=3),
             dbc.Col([
                 html.Label("select", className="label", style={'fontWeight': 'bold', 'visibility': 'hidden'}),  # add invisible label to match dropdowns
-                html.Button('Ranks List', id='open-modal-button', style=button_style),
+                html.Button(
+                    [
+                        html.Span('Ranks List', className='ranks-full'),
+                        html.Span('ranks', className='ranks-short')  # Changed to lowercase 'ranks'
+                    ],
+                    id='open-modal-button',
+                    style=button_style
+                ),            
             ], xs=4, sm=3, md=3, lg=3),
         ], justify="center", align="center", className="mb-4"),
 
