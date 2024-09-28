@@ -87,6 +87,15 @@
     .ranks-short {
         display: inline !important;
     }
+
+    /* ---------------------------------------------------
+       Slider Marks Responsive Styles
+    ---------------------------------------------------- */
+
+    /* Hide the slider marks (timeline numbers) on small screens */
+    .slider .rc-slider-mark-text {
+        display: none;
+    }
 }
 
 /* ---------------------------------------------------
@@ -98,7 +107,11 @@
     display: none;
 }
 
-/* Optional: Add transition effects for smooth text changes */
+/* ---------------------------------------------------
+   Optional Transition Effects
+---------------------------------------------------- */
+
+/* Add transition effects for smooth text changes */
 .ranks-full,
 .ranks-short {
     transition: opacity 0.3s ease, display 0.3s ease;

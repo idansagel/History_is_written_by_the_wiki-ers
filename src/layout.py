@@ -117,10 +117,7 @@ def create_app_layout(unique_occupations, min_year, max_year):
                             figure=go.Figure(
                                 layout=dict(
                                     mapbox=dict(
-                                        style="open-street-map",
-                                        center=dict(lat=30, lon=15),
-                                        zoom=1.5
-                                    ),
+                                        style="open-street-map",                                    ),
                                     showlegend=False,
                                     hovermode=False,
                                     margin=dict(l=0, r=0, t=0, b=0),
