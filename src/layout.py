@@ -149,7 +149,7 @@ def create_app_layout(unique_occupations, min_year, max_year):
                                 "width": "100%",
                                 "height": "100%",
                                 "backgroundColor": "rgba(255, 255, 255, 0.5)",
-                                "display": "none",
+                                "display": "flex",  # Change 'none' to 'flex'
                                 "justifyContent": "center",
                                 "alignItems": "center",
                                 "zIndex": 1000,

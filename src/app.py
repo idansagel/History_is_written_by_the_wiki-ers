@@ -128,8 +128,8 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
         zoom = relayoutData['mapbox.zoom']
     else:
         # Set to initial center and zoom to display the entire world
-        center = {"lat": 20, "lon": -35}  # Equator and Prime Meridian intersection
-        zoom = 1  # Zoom level that shows the entire globe
+        center = {"lat": 20, "lon": -25}  # Equator and Prime Meridian intersection
+        zoom = 0.5  # Zoom level that shows the entire globe
 
     fig.update_layout(
         mapbox_style="open-street-map",
