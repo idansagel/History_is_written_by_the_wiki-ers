@@ -54,6 +54,8 @@ def get_app_title(selected_occupation, article_name, year):
     return app_title
 
 # Callback to update the map, app title, and loading overlay
+# app.py (continued)
+
 @callback(
     [Output('world-map', 'figure'),
      Output('app-title', 'children'),
@@ -96,7 +98,7 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
     df_filtered['longitude'] = pd.to_numeric(df_filtered['longitude'], errors='coerce')
     df_filtered['color_value'] = pd.to_numeric(df_filtered['color_value'], errors='coerce')
 
-    # Create the map
+    # Create the map using Plotly Express
     fig = px.scatter_mapbox(
         df_filtered,
         lat='latitude',
@@ -109,8 +111,6 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
             [0.5, "#FFD700"],
             [1.0, "#FF0000"]
         ],
-        labels={'color_value': 'Historical<br>Significance'},
-        zoom=1.5,
     )
 
     # Update hover template and customdata
@@ -122,13 +122,14 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
         customdata=df_filtered[['birth', 'death']].values
     )
 
-    # Preserve the viewport state
+    # Preserve the viewport state if the user has interacted with the map
     if relayoutData and 'mapbox.center' in relayoutData:
         center = relayoutData['mapbox.center']
         zoom = relayoutData['mapbox.zoom']
     else:
-        center = {"lat": 30, "lon": 15}
-        zoom = 1.5
+        # Set to initial center and zoom to display the entire world
+        center = {"lat": 20, "lon": -35}  # Equator and Prime Meridian intersection
+        zoom = 1  # Zoom level that shows the entire globe
 
     fig.update_layout(
         mapbox_style="open-street-map",
@@ -167,9 +168,6 @@ def update_map(slider_value, selected_occupation, filtered_links, group_option, 
     print(f"Total time for update_map callback: {total_time}s")
 
     return fig, app_title, loading_style
-
-# Callback to update click data and related information
-# app.py (continued)
 
 # Import additional dependencies if not already present
 from dash import html
