@@ -1,5 +1,6 @@
 import dash
-from dash import dcc, html, Input, Output, State, callback, no_update, ALL
+from dash import html, Input, Output, State, callback, no_update, ALL
+import dash_bootstrap_components as dbc
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 import numpy as np
@@ -22,7 +23,7 @@ import pandas as pd
 
 warnings.filterwarnings('ignore')
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
 # Fetch data directly from the database

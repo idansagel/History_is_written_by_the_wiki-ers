@@ -1,0 +1,28 @@
+/* assets/custom.css */
+
+/* Adjust title font size on small screens */
+.app-title {
+    font-size: 2rem;
+}
+
+@media (max-width: 576px) {
+    .app-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Make dropdowns full width */
+.dropdown {
+    width: 100%;
+}
+
+/* Adjust label font size on small screens */
+.label {
+    font-weight: bold;
+}
+
+@media (max-width: 576px) {
+    .label {
+        font-size: 0.9rem;
+    }
+}
